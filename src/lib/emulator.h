@@ -2,6 +2,8 @@
 
 #include <cstdint>
 #include <array>
+#include <cstddef>
+#include <istream>
 
 namespace em_c8 {
     enum keys {
@@ -55,9 +57,10 @@ namespace em_c8 {
             uint16_t pc;
             uint8_t sp;
 
-
         public:
             chip_8();
+            void load(const size_t start_address, std::istream& input);
+            void load(const size_t start_address, const uint8_t* begin, const uint8_t* end);
             ~chip_8();
     };    
 }
