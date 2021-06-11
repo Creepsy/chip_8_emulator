@@ -24,8 +24,7 @@ namespace em_c8 {
         KEY_E,
         KEY_F
     };
-    */
-    
+    */   
 
     class chip_8 {
         private:
@@ -39,10 +38,10 @@ namespace em_c8 {
             uint8_t sound_timer;
             uint16_t pc;
             uint8_t sp;
-
         public:
             chip_8();
             void set_pc(const uint16_t pc);
+            void reset();
             void load(const size_t start_address, std::istream& input);
             void load(const size_t start_address, const uint8_t* begin, const uint8_t* end);
             void next_cycle();
