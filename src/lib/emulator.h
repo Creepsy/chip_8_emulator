@@ -42,8 +42,10 @@ namespace em_c8 {
 
         public:
             chip_8();
+            void set_pc(const uint16_t pc);
             void load(const size_t start_address, std::istream& input);
             void load(const size_t start_address, const uint8_t* begin, const uint8_t* end);
+            void next_cycle();
             ~chip_8();
     };    
 }
