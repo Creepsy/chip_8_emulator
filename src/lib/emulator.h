@@ -38,6 +38,11 @@ namespace em_c8 {
             uint8_t sound_timer;
             uint16_t pc;
             uint8_t sp;
+
+            void op_jmp(const uint16_t op);
+
+            typedef void(chip_8::*instruction)(const uint16_t op);
+            const static std::array<instruction, 16> INSTRUCTION_TABLE;
         public:
             chip_8();
             void set_pc(const uint16_t pc);

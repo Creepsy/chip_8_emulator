@@ -2,10 +2,8 @@
 
 using namespace em_c8;
 
-typedef void(chip_8::*instruction)(uint16_t op);
-
-const std::array<instruction, 16> INSTRUCTION_TABLE {{
-    nullptr, nullptr, nullptr, nullptr,
+const std::array<chip_8::instruction, 16> chip_8::INSTRUCTION_TABLE = {{
+    nullptr, &chip_8::op_jmp, nullptr, nullptr,
     nullptr, nullptr, nullptr, nullptr,
     nullptr, nullptr, nullptr, nullptr,
     nullptr, nullptr, nullptr, nullptr
@@ -84,4 +82,11 @@ void chip_8::next_cycle() {
 }
 
 chip_8::~chip_8() {
+}
+
+
+
+//private
+void chip_8::op_jmp(const uint16_t op) {
+
 }
