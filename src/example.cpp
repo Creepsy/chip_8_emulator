@@ -1,10 +1,13 @@
 #include <iostream>
 #include <array>
+#include <random>
 
 #include "lib/emulator.h"
 
 int main() {
-    em_c8::chip_8 emulator{};
+    std::random_device rd{};
+
+    em_c8::chip_8 emulator{rd()};
 
     std::array<uint8_t, 5> program {{2, 10, 0, 0, 0}};
 

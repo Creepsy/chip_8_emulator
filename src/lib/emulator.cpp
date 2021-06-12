@@ -165,9 +165,11 @@ void chip_8::op_arithmetric(const uint16_t op) {
             result = this->registers[target] ^ this->registers[second];
             break;
         case 0x4:
-            uint16_t tmp_res = (uint16_t)this->registers[target] + this->registers[second];
-            result = tmp_res & 0xff;
-            this->registers[0xf] = (tmp_res >> 8) & 1;
+            {
+                uint16_t tmp_res = (uint16_t)this->registers[target] + this->registers[second];
+                result = tmp_res & 0xff;
+                this->registers[0xf] = (tmp_res >> 8) & 1;
+            }
             break;
         case 0x5:
             this->registers[0xf] = this->registers[target] > this->registers[second];
