@@ -13,6 +13,7 @@ int main() {
 
     emulator.load(0x200, program.begin(), program.end());
 
-    std::cout << "project setup" << std::endl;
+    std::cout << "project setup" << '\007' << std::endl;
+
     return 0;
 }
