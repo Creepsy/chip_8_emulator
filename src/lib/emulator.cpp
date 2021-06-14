@@ -1,5 +1,7 @@
 #include "emulator.h"
 
+#include <stdexcept>
+
 using namespace em_c8;
 
 const std::array<chip_8::instruction, 16> chip_8::INSTRUCTION_TABLE = {{
@@ -28,13 +30,17 @@ const std::array<std::array<uint8_t, 5>, 16> CHARACTERS {{
     {0xf0, 0x80, 0xf0, 0x80, 0x80}
 }};
 
-chip_8::chip_8(const unsigned int seed)
- : rand{seed}, distrib{0, 255}, ram{}, registers{}, stack{}, video_buffer{}, i{0}, delay_timer{0}, sound_timer{0}, pc{0x200}, sp{0} {
+chip_8::chip_8(const unsigned int seed, const std::string& title)
+ : rand{seed}, distrib{0, 255}, ram{}, registers{}, stack{}, video_buffer{}, i{0},
+   delay_timer{0}, sound_timer{0}, pc{0x200}, sp{0}, window_update{true}, is_open{true}, window_buffer{} {
     size_t position = 0;
     for(const std::array<uint8_t, 5>& character : CHARACTERS) {
         this->load(position, character.begin(), character.end());
         position += character.size();
     }
+
+    this->window = mfb_open_ex(title.c_str(), 640, 320, 0);
+    if(!window) throw std::runtime_error("Unable to create the emulator window!");
 }
 
 void chip_8::set_pc(const uint16_t pc) {
@@ -80,6 +86,28 @@ void chip_8::next_cycle() {
     this->pc += 2;
 
     (this->*INSTRUCTION_TABLE[op >> 12])(op);
+}
+
+void chip_8::update_window() {
+    if(this->should_close()) return;
+
+    if(this->window_update) {
+        this->window_update = false;
+        this->update_window_buffer();
+    }
+
+    int state = mfb_update_ex(window, this->window_buffer.begin(), 640, 320);
+    if(state != STATE_OK) {
+        this->is_open = false;
+        this->window = nullptr;
+        return;
+    }
+
+    mfb_wait_sync(window);
+}
+
+bool chip_8::should_close() {
+    return !this->is_open;
 }
 
 chip_8::~chip_8() {
@@ -257,4 +285,16 @@ void chip_8::op_setters(const uint16_t op) {
             break;
     }
     //TODO
+}
+
+void chip_8::update_window_buffer() {
+    for(size_t pixel = 0; pixel < this->window_buffer.size(); pixel++) {
+        size_t x = pixel % 640;
+        size_t y = (pixel - x) / 640;
+        size_t vb_pos = x / 10 + y / 10 * 64;
+
+        uint8_t value = this->video_buffer[vb_pos];
+
+        this->window_buffer[pixel] = MFB_RGB(value, value, value);
+    }
 }

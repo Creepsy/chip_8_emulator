@@ -5,28 +5,11 @@
 #include <cstddef>
 #include <istream>
 #include <random>
+#include <string>
+
+#include "MiniFB.h"
 
 namespace em_c8 {
-    /*enum keys {
-        KEY_ZERO,
-        KEY_ONE,
-        KEY_TWO,
-        KEY_THREE,
-        KEY_FOUR,
-        KEY_FIVE,
-        KEY_SIX,
-        KEY_SEVEN,
-        KEY_EIGHT,
-        KEY_NINE,
-        KEY_A,
-        KEY_B,
-        KEY_C,
-        KEY_D,
-        KEY_E,
-        KEY_F
-    };
-    */   
-
     class chip_8 {
         private:
             std::mt19937 rand;
@@ -42,6 +25,11 @@ namespace em_c8 {
             uint8_t sound_timer;
             uint16_t pc;
             uint8_t sp;
+
+            bool window_update;
+            bool is_open;
+            std::array<uint32_t, 640 * 320> window_buffer;
+            mfb_window* window;
 
             void op_util(const uint16_t op);
             void op_jmp(const uint16_t op);
@@ -60,15 +48,19 @@ namespace em_c8 {
             void op_jmp_key(const uint16_t op);
             void op_setters(const uint16_t op);
 
+            void update_window_buffer();
+
             typedef void(chip_8::*instruction)(const uint16_t op);
             const static std::array<instruction, 16> INSTRUCTION_TABLE;
         public:
-            chip_8(const unsigned int seed);
+            chip_8(const unsigned int seed, const std::string& title);
             void set_pc(const uint16_t pc);
             void reset();
             void load(const size_t start_address, std::istream& input);
             void load(const size_t start_address, const uint8_t* begin, const uint8_t* end);
             void next_cycle();
+            void update_window();
+            bool should_close();
             ~chip_8();
     };    
 }
