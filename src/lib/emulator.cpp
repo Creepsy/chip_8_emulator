@@ -1,8 +1,8 @@
 #include "emulator.h"
 
 #include <stdexcept>
-#include <iostream>
-#include <iomanip>
+//#include <iostream>
+//#include <iomanip>
 
 using namespace em_c8;
 
@@ -98,7 +98,7 @@ void chip_8::next_cycle() {
     uint16_t op = (uint16_t)this->ram[this->pc] << 8 | this->ram[this->pc + 1];
     this->pc += 2;
 
-    std::cout << std::hex << op << " -> " << (op >> 12) << std::endl;
+    //std::cout << std::hex << op << " -> " << (op >> 12) << std::endl;
 
     (this->*INSTRUCTION_TABLE[op >> 12])(op);
 }
