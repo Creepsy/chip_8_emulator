@@ -5,6 +5,8 @@
 
 #include "lib/emulator.h"
 
+//INFO: sound is missing
+
 int main(int argc, char* argv[]) {
     if(argc != 2) {
         std::cerr << "Invalid arguments! Expected <file_name> as argument!" << std::endl;
@@ -20,7 +22,7 @@ int main(int argc, char* argv[]) {
 
     std::random_device rd{};
 
-    mfb_set_target_fps(60);
+    mfb_set_target_fps(121);
     em_c8::chip_8 emulator{rd(), "CHIP-8 Emulator"};
     emulator.load(0x200, rom);
     rom.close();

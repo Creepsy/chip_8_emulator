@@ -270,7 +270,7 @@ void chip_8::op_draw_sprite(const uint16_t op) {
     size_t y = (op >> 4) & 0xf;
     size_t sprite_size = op & 0xf;
 
-    this->draw_sprite(x, y, sprite_size);
+    this->draw_sprite(this->registers[x], this->registers[y], sprite_size);
 }
 
 void chip_8::op_jmp_key(const uint16_t op) {
