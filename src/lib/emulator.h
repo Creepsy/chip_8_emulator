@@ -6,6 +6,7 @@
 #include <istream>
 #include <random>
 #include <string>
+#include <vector>
 
 #include "MiniFB.h"
 
@@ -49,6 +50,9 @@ namespace em_c8 {
             void op_setters(const uint16_t op);
 
             void update_window_buffer();
+            void draw_sprite(const size_t x, const size_t y, const size_t sprite_size);
+            uint8_t await_key_press();
+            std::vector<uint8_t> get_pressed_keys();
 
             typedef void(chip_8::*instruction)(const uint16_t op);
             const static std::array<instruction, 16> INSTRUCTION_TABLE;
