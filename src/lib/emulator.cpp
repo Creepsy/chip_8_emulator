@@ -1,8 +1,8 @@
 #include "emulator.h"
 
 #include <stdexcept>
-//#include <iostream>
-//#include <iomanip>
+#include <iostream>
+#include <iomanip>
 
 using namespace em_c8;
 
@@ -98,7 +98,7 @@ void chip_8::next_cycle() {
     uint16_t op = (uint16_t)this->ram[this->pc] << 8 | this->ram[this->pc + 1];
     this->pc += 2;
 
-   // std::cout << std::hex << op << " -> " << (op >> 12) << std::endl;
+    std::cout << std::hex << op << " -> " << (op >> 12) << std::endl;
 
     (this->*INSTRUCTION_TABLE[op >> 12])(op);
 }
@@ -134,13 +134,13 @@ chip_8::~chip_8() {
 void chip_8::op_util(const uint16_t op) {
     if(op == 0x00e0) {
         this->video_buffer.fill(0);
-       // this->window_update = true;
+        this->window_update = true;
     } else if(op == 0x00ee) {
        // std::cout << this->stack[this->sp] << std::endl;
         this->pc = this->stack[this->sp];
         this->sp--;
     } else if(op == 0x0fff){
-        this->window_update = true;
+     //   this->window_update = true;
     }
 }
 
@@ -242,7 +242,7 @@ void chip_8::op_arithmetric(const uint16_t op) {
 }
 
 void chip_8::op_not_equals(const uint16_t op) {
-    if(op & 0xf == 0x0) {
+    if((op & 0xf) == 0x0) {
         uint8_t first = (op >> 8) & 0xf;
         uint8_t second = (op >> 4) & 0xf;
 
@@ -277,9 +277,9 @@ void chip_8::op_jmp_key(const uint16_t op) {
     uint8_t reg = (op >> 8) & 0xf;
 
     const uint8_t* keymap = mfb_get_key_buffer(this->window);
-    if(op & 0xff == 0x9e) {
+    if((op & 0xff) == 0x9e) {
         if(keymap[MFB_KEYMAPPINGS[this->registers[reg]]]) this->pc += 2;
-    } else if(op & 0xff == 0xa1) {
+    } else if((op & 0xff) == 0xa1) {
         if(!keymap[MFB_KEYMAPPINGS[this->registers[reg]]]) this->pc += 2;
     }
 }
@@ -354,7 +354,7 @@ void chip_8::draw_sprite(const size_t x, const size_t y, const size_t sprite_siz
         }
     }
 
-   // this->window_update = true;
+    this->window_update = true;
     this->registers[0xf] = collision;
 }
 
