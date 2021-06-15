@@ -134,13 +134,13 @@ chip_8::~chip_8() {
 void chip_8::op_util(const uint16_t op) {
     if(op == 0x00e0) {
         this->video_buffer.fill(0);
-        this->window_update = true;
+       // this->window_update = true;
     } else if(op == 0x00ee) {
        // std::cout << this->stack[this->sp] << std::endl;
         this->pc = this->stack[this->sp];
         this->sp--;
-    } else {
-        //not implemented
+    } else if(op == 0x0fff){
+        this->window_update = true;
     }
 }
 
@@ -354,7 +354,7 @@ void chip_8::draw_sprite(const size_t x, const size_t y, const size_t sprite_siz
         }
     }
 
-    this->window_update = true;
+   // this->window_update = true;
     this->registers[0xf] = collision;
 }
 
