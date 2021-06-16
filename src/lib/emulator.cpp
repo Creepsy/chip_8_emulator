@@ -51,9 +51,6 @@ chip_8::chip_8(const unsigned int seed, const std::string& title, const size_t f
 
     std::thread window_updater(&chip_8::update_window, this, title, fps);
     window_updater.detach();
-
-    std::chrono::milliseconds curr = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
-    this->next_timer_update = curr + std::chrono::seconds{1} / 60;
 }
 
 void chip_8::set_pc(const uint16_t pc) {
@@ -97,7 +94,7 @@ void chip_8::load(const size_t start_address, const uint8_t* begin, const uint8_
 
 void chip_8::next_cycle() {
     std::chrono::milliseconds curr = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
-    if(curr <= this->next_timer_update) {
+    if(curr >= this->next_timer_update) {
         if(this->delay_timer > 0) this->delay_timer--;
         if(this->sound_timer > 0) this->sound_timer--;
         this->next_timer_update = curr + std::chrono::milliseconds{1000} / 60;
@@ -106,7 +103,7 @@ void chip_8::next_cycle() {
     uint16_t op = (uint16_t)this->ram[this->pc] << 8 | this->ram[this->pc + 1];
     this->pc += 2;
 
-    //std::cout << std::hex << op << " -> " << (op >> 12) << std::endl;
+   // std::cout << std::hex << op << " -> " << (op >> 12) << ", " << std::resetiosflags << this->delay_timer << std::endl;
 
     (this->*INSTRUCTION_TABLE[op >> 12])(op);
 }
