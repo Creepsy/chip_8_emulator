@@ -8,6 +8,7 @@ project(chip_8)
 
 add_subdirectory(minifb)
 
+find_package(Threads)
 
 add_executable(emulator src/example.cpp ${SOURCE_FILES})
 
@@ -15,3 +16,4 @@ include_directories(src/)
 include_directories(minifb/include)
 
 target_link_libraries(emulator minifb)
+target_link_libraries(emulator ${CMAKE_THREAD_LIBS_INIT})

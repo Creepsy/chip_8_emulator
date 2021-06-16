@@ -22,8 +22,7 @@ int main(int argc, char* argv[]) {
 
     std::random_device rd{};
 
-    mfb_set_target_fps(121);
-    em_c8::chip_8 emulator{rd(), "CHIP-8 Emulator"};
+    em_c8::chip_8 emulator{rd(), "CHIP-8 Emulator", 60};
     emulator.load(0x200, rom);
     rom.close();
 
@@ -31,7 +30,7 @@ int main(int argc, char* argv[]) {
 
     while(!emulator.should_close()) {
         emulator.next_cycle();
-        emulator.update_window();
+     //   emulator.update_window();
     }
 
     return 0;

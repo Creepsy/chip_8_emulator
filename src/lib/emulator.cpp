@@ -1,6 +1,7 @@
 #include "emulator.h"
 
 #include <stdexcept>
+#include <thread>
 //#include <iostream>
 //#include <iomanip>
 
@@ -39,17 +40,20 @@ const std::array<std::array<uint8_t, 5>, 16> CHARACTERS {{
     {0xf0, 0x80, 0xf0, 0x80, 0x80}
 }};
 
-chip_8::chip_8(const unsigned int seed, const std::string& title)
+chip_8::chip_8(const unsigned int seed, const std::string& title, const size_t fps)
  : rand{seed}, distrib{0, 255}, ram{}, registers{}, stack{}, video_buffer{}, i{0},
-   delay_timer{0}, sound_timer{0}, pc{0x200}, sp{0}, window_update{true}, is_open{true}, window_buffer{} {
+   delay_timer{0}, sound_timer{0}, pc{0x200}, sp{0}, window_update{true}, is_open{true}, window_buffer{}, next_timer_update{0} {
     size_t position = 0;
     for(const std::array<uint8_t, 5>& character : CHARACTERS) {
         this->load(position, character.begin(), character.end());
         position += character.size();
     }
 
-    this->window = mfb_open_ex(title.c_str(), 640, 320, 0);
-    if(!window) throw std::runtime_error("Unable to create the emulator window!");
+    std::thread window_updater(&chip_8::update_window, this, title, fps);
+    window_updater.detach();
+
+    std::chrono::milliseconds curr = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+    this->next_timer_update = curr + std::chrono::seconds{1} / 60;
 }
 
 void chip_8::set_pc(const uint16_t pc) {
@@ -92,8 +96,12 @@ void chip_8::load(const size_t start_address, const uint8_t* begin, const uint8_
 }
 
 void chip_8::next_cycle() {
-    if(this->delay_timer > 0) this->delay_timer--;
-    if(this->sound_timer > 0) this->sound_timer--;
+    std::chrono::milliseconds curr = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch());
+    if(curr <= this->next_timer_update) {
+        if(this->delay_timer > 0) this->delay_timer--;
+        if(this->sound_timer > 0) this->sound_timer--;
+        this->next_timer_update = curr + std::chrono::milliseconds{1000} / 60;
+    }
 
     uint16_t op = (uint16_t)this->ram[this->pc] << 8 | this->ram[this->pc + 1];
     this->pc += 2;
@@ -101,24 +109,6 @@ void chip_8::next_cycle() {
     //std::cout << std::hex << op << " -> " << (op >> 12) << std::endl;
 
     (this->*INSTRUCTION_TABLE[op >> 12])(op);
-}
-
-void chip_8::update_window() {
-    if(this->should_close()) return;
-
-    if(this->window_update) {
-        this->window_update = false;
-        this->update_window_buffer();
-    }
-
-    int state = mfb_update_ex(window, this->window_buffer.begin(), 640, 320);
-    if(state != STATE_OK) {
-        this->is_open = false;
-        this->window = nullptr;
-        return;
-    }
-
-    mfb_wait_sync(window);
 }
 
 bool chip_8::should_close() {
@@ -136,11 +126,10 @@ void chip_8::op_util(const uint16_t op) {
         this->video_buffer.fill(0);
         this->window_update = true;
     } else if(op == 0x00ee) {
-       // std::cout << this->stack[this->sp] << std::endl;
         this->pc = this->stack[this->sp];
         this->sp--;
-    } else if(op == 0x0fff){
-     //   this->window_update = true;
+    } else {
+        //not implemented
     }
 }
 
@@ -333,7 +322,6 @@ void chip_8::update_window_buffer() {
         size_t vb_pos = x / 10 + y / 10 * 64;
 
         uint8_t value = this->video_buffer[vb_pos] * 255;
-
         this->window_buffer[pixel] = MFB_RGB(value, value, value);
     }
 }
@@ -349,8 +337,8 @@ void chip_8::draw_sprite(const size_t x, const size_t y, const size_t sprite_siz
 
             bool value = (this->ram[this->i + row] >> bit) & 1;
 
-           collision |= this->video_buffer[vb_pos] & value;
-           this->video_buffer[vb_pos] ^= value;
+            collision |= this->video_buffer[vb_pos] & value;
+            this->video_buffer[vb_pos] ^= value;
         }
     }
 
@@ -377,4 +365,27 @@ std::vector<uint8_t> chip_8::get_pressed_keys() {
     }
 
     return pressed_keys;
+}
+
+void chip_8::update_window(const std::string& title, const size_t fps) {
+    mfb_set_target_fps(fps);
+    this->window = mfb_open_ex(title.c_str(), 640, 320, 0);
+    if(!window) throw std::runtime_error("Unable to create the emulator window!");
+    while(true) {
+        if(this->should_close()) return;
+
+        if(this->window_update) {
+            this->window_update = false;
+            this->update_window_buffer();
+        }
+
+        int state = mfb_update_ex(window, this->window_buffer.begin(), 640, 320);
+        if(state != STATE_OK) {
+            this->is_open = false;
+            this->window = nullptr;
+            return;
+        }
+
+        mfb_wait_sync(window);
+    }
 }

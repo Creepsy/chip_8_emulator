@@ -7,6 +7,7 @@
 #include <random>
 #include <string>
 #include <vector>
+#include <chrono>
 
 #include "MiniFB.h"
 
@@ -31,6 +32,7 @@ namespace em_c8 {
             bool is_open;
             std::array<uint32_t, 640 * 320> window_buffer;
             mfb_window* window;
+            std::chrono::milliseconds next_timer_update;
 
             void op_util(const uint16_t op);
             void op_jmp(const uint16_t op);
@@ -53,17 +55,17 @@ namespace em_c8 {
             void draw_sprite(const size_t x, const size_t y, const size_t sprite_size);
             uint8_t await_key_press();
             std::vector<uint8_t> get_pressed_keys();
+            void update_window(const std::string& title, const size_t fps);
 
             typedef void(chip_8::*instruction)(const uint16_t op);
             const static std::array<instruction, 16> INSTRUCTION_TABLE;
         public:
-            chip_8(const unsigned int seed, const std::string& title);
+            chip_8(const unsigned int seed, const std::string& title, const size_t fps);
             void set_pc(const uint16_t pc);
             void reset();
             void load(const size_t start_address, std::istream& input);
             void load(const size_t start_address, const uint8_t* begin, const uint8_t* end);
             void next_cycle();
-            void update_window();
             bool should_close();
             ~chip_8();
     };    
